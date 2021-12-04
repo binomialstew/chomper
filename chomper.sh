@@ -15,7 +15,7 @@ show_help () {
 # for usage in cron
 # 30 * * * * bash ${HOME}/chomper.sh -d ${HOME}/Downloads/ / 80 1 >> ${HOME}/chomper_logs/chomper-`date "+\%Y-\%m-\%d"`.log 2>&1
 
-VERSION=3.0.1
+VERSION=3.0.2
 
 PIDFILE=./chomper.pid
 
@@ -117,7 +117,6 @@ set_arguments () {
 }
 
 check_capacity () {
-
     if ! USAGE=$(df -Pk $MOUNT | sed 1d | grep -v used | awk '{ print $5 "\t" }' | sed 's/%//g; s/[[:space:]]//g')
     then
         echo "Error: mountpoint $MOUNT not found in df output."
@@ -153,7 +152,7 @@ process_file () {
         # we delete the files
         find $DIRECTORY -type f -not -path '*/\.*' -printf "%T@ %p\n" | sort -nr | tail -$Number_Files_Deleted_Each_Loop | cut -d' ' -f 2- | xargs -I % sh -c 'echo %; rm "%";'
         # we delete the empty directories
-        EMPTY=$(find $DIRECTORY -type d  -not -name 'lost+found' -empty)
+        EMPTY=$(find $DIRECTORY -type d -not -name 'lost+found' -empty | sed 's/ /\\ /g')
         if [ ! -z "$EMPTY" ]
         then
             if [ "$EMPTY" = "$DIRECTORY" ]
@@ -162,7 +161,7 @@ process_file () {
                 rm $PIDFILE
                 exit 1
             else
-                rm -rf "./$EMPTY"
+                echo $EMPTY | xargs -t rm -rf
             fi
         fi
     fi
