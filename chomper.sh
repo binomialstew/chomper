@@ -15,10 +15,6 @@ show_help () {
 # for usage in cron
 # 30 * * * * bash ${HOME}/chomper.sh -d ${HOME}/Downloads/ / 80 1 >> ${HOME}/chomper_logs/chomper-`date "+\%Y-\%m-\%d"`.log 2>&1
 
-VERSION=3.0.2
-
-PIDFILE=./chomper.pid
-
 #
 # Failsafe mechanism. Delete a maximum of MAX_CYCLES files, raise an error after
 # that. Prevents possible runaway script. Disable by choosing a high value.
@@ -145,12 +141,11 @@ process_file () {
     then
         echo "$DIRECTORY does not exist"
         echo "Ending chomper.sh"
-        rm $PIDFILE
         exit 1
     else
         echo "Deleting $Number_Files_Deleted_Each_Loop oldest files from \"$DIRECTORY\":"
         # we delete the files
-        find $DIRECTORY -type f -not -path '*/\.*' -printf "%T@ %p\n" | sort -nr | tail -$Number_Files_Deleted_Each_Loop | cut -d' ' -f 2- | xargs -I % sh -c 'echo %; rm "%";'
+        find "$DIRECTORY" -type f -not -path '*/\.*' -exec stat -c "%Y %n" {} \; | sort -nr | tail -n "$Number_Files_Deleted_Each_Loop" | awk '{print substr($0, index($0,$2))}' | xargs -I % sh -c 'echo %; rm -- "%"'
         # we delete the empty directories
         EMPTY=$(find $DIRECTORY -type d -not -name 'lost+found' -empty | sed 's/ /\\ /g')
         if [ ! -z "$EMPTY" ]
@@ -158,7 +153,6 @@ process_file () {
             if [ "$EMPTY" = "$DIRECTORY" ]
             then
                 echo "$DIRECTORY is now empty"
-                rm $PIDFILE
                 exit 1
             else
                 echo $EMPTY | xargs -t rm -rf
@@ -186,34 +180,6 @@ delete_loop () {
 set_arguments $ARG1 $ARG2 $ARG3
 show_header
 reset
-
-if [ -f $PIDFILE ]
-then
-    PID=$(cat $PIDFILE)
-    ps -p $PID > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-        echo "An existing cron job is running for this script (PIDFILE exists). Not executing."
-        exit 1
-    else
-        ## Process not found - assume not running
-        echo $$ > $PIDFILE
-        if [ $? -ne 0 ]
-        then
-          echo "Could not create PID file"
-          exit 1
-        fi
-        delete_loop
-    fi
-else
-    echo $$ > $PIDFILE
-    if [ $? -ne 0 ]
-    then
-        echo "Could not create PID file"
-        exit 1
-    fi
-    delete_loop
-fi
+delete_loop
 
 show_footer
-rm $PIDFILE
