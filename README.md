@@ -27,6 +27,6 @@ services:
 ## Environment
 
 This container takes the following environment variables:
-  - THRESHOLD: The percentage of the measured volume this directory is allowed to use (default is 80)
+  - THRESHOLD: Files will be deleted from `/reduce_directory` until this percentage of usage is reached on `/volume_usage_directory` (default is 80)
   - FILE_NUMBER: The number of files deleted in each loop. This can be increased to speed up deletion and lessen resource usage (default is 1)
   - SCHEDULE: A cron expression that defines how often chomper is run (default is every hour)
