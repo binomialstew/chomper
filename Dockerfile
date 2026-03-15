@@ -9,7 +9,7 @@ RUN apk add -U \
   && rm -rf /var/cache/apk/*
 
 # Set bash as the default shell
-SHELL ["/bin/bash", "-c"] # chomper needs bash right now
+SHELL ["/bin/bash", "-c"]
 
 ENV VERSION=$VERSION
 ENV SCHEDULE="0 * * * *"
