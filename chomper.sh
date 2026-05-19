@@ -23,6 +23,12 @@ VERSION=4.1.0
 #
 MAX_CYCLES=100
 
+#
+# Support exclusion of directories for removal
+# E.g., lost\+found
+#
+FIND_EXCLUDE=${FIND_EXCLUDE:-""}
+
 while getopts "d:hv" flag
 do
     case "$flag" in
@@ -145,11 +151,21 @@ process_file () {
         echo "Ending chomper.sh"
         exit 1
     else
+        EXCLUDE_ARGS=()
+        if [ -n "$FIND_EXCLUDE" ]; then
+            IFS=',' read -ra EXCLUDES <<< "$FIND_EXCLUDE"
+            for excl in "${EXCLUDES[@]}"; do
+                EXCLUDE_ARGS+=(-path "*/$excl" -prune -o)
+            done
+            echo "Excluding: ${EXCLUDES[*]}"
+        else
+            echo "No exclusions set"
+        fi
         echo "Deleting $Number_Files_Deleted_Each_Loop oldest files from \"$DIRECTORY\":"
         # we delete the files
-        find "$DIRECTORY" -type f -not -path '*/\.*' -exec stat -c "%Y %n" {} \; | sort -nr | tail -n "$Number_Files_Deleted_Each_Loop" | awk '{print substr($0, index($0,$2))}' | xargs -I % sh -c 'echo %; rm -- "%"'
+        find "$DIRECTORY" "${EXCLUDE_ARGS[@]}" -type f -not -path '*/\.*' -exec stat -c "%Y %n" {} \; | sort -nr | tail -n "$Number_Files_Deleted_Each_Loop" | awk '{print substr($0, index($0,$2))}' | xargs -I % sh -c 'echo %; rm -- "%"'
         # we delete the empty directories
-        EMPTY=$(find $DIRECTORY -type d -not -name 'lost+found' -empty | sed 's/ /\\ /g')
+        EMPTY=$(find "$DIRECTORY" "${EXCLUDE_ARGS[@]}" -type d -empty | sed 's/ /\\ /g')
         if [ ! -z "$EMPTY" ]
         then
             if [ "$EMPTY" = "$DIRECTORY" ]
