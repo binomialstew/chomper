@@ -1,7 +1,5 @@
 FROM alpine
 MAINTAINER Charles Lehnert <Charles@CLLInteractive.com>
-ARG VERSION=4.0.0
-LABEL version=$VERSION
 
 RUN apk add -U \
   bash \
@@ -11,7 +9,6 @@ RUN apk add -U \
 # Set bash as the default shell
 SHELL ["/bin/bash", "-c"]
 
-ENV VERSION=$VERSION
 ENV SCHEDULE="0 * * * *"
 ENV THRESHOLD=80
 ENV FILE_NUMBER=1
