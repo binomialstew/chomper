@@ -4,6 +4,7 @@ MAINTAINER Charles Lehnert <Charles@CLLInteractive.com>
 RUN apk add -U \
   bash \
   tini \
+  tzdata \
   && rm -rf /var/cache/apk/*
 
 # Set bash as the default shell
