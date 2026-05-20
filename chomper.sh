@@ -151,16 +151,6 @@ process_file () {
         echo "Ending chomper.sh"
         exit 1
     else
-        EXCLUDE_ARGS=()
-        if [ -n "$FIND_EXCLUDE" ]; then
-            IFS=',' read -ra EXCLUDES <<< "$FIND_EXCLUDE"
-            for excl in "${EXCLUDES[@]}"; do
-                EXCLUDE_ARGS+=(-path "*/$excl" -prune -o)
-            done
-            echo "Excluding: ${EXCLUDES[*]}"
-        else
-            echo "No exclusions set"
-        fi
         echo "Deleting $Number_Files_Deleted_Each_Loop oldest files from \"$DIRECTORY\":"
         # we delete the files
         find "$DIRECTORY" "${EXCLUDE_ARGS[@]}" -type f -not -path '*/\.*' -exec stat -c "%Y %n" {} \; | sort -nr | tail -n "$Number_Files_Deleted_Each_Loop" | awk '{print substr($0, index($0,$2))}' | xargs -I % sh -c 'echo "rm %"; rm -- "%"'
@@ -198,6 +188,18 @@ delete_loop () {
 set_arguments $ARG1 $ARG2 $ARG3
 show_header
 reset
+
+EXCLUDE_ARGS=()
+if [ -n "$FIND_EXCLUDE" ]; then
+    IFS=',' read -ra EXCLUDES <<< "$FIND_EXCLUDE"
+    for excl in "${EXCLUDES[@]}"; do
+        EXCLUDE_ARGS+=(-path "*/$excl" -prune -o)
+    done
+    echo "Excluding: ${EXCLUDES[*]}"
+else
+    echo "No exclusions set"
+fi
+
 delete_loop
 
 show_footer
