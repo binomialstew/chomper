@@ -56,13 +56,13 @@ ARG3=${@:$OPTIND+2:1}
 show_header () {
     echo "-----------------------------------------------------"
     echo "CHOMPER v$VERSION"
-    echo "$(date +%H:%M:%S): Checking volume capacity usage..."
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): Checking volume capacity usage..."
     echo
 }
 
 show_footer () {
     echo
-    echo "$(date +%H:%M:%S): Script complete"
+    echo "$(date '+%Y-%m-%d %H:%M:%S'): Script complete"
     echo "------------------------------------------------------"
     echo
 }
@@ -163,7 +163,7 @@ process_file () {
         fi
         echo "Deleting $Number_Files_Deleted_Each_Loop oldest files from \"$DIRECTORY\":"
         # we delete the files
-        find "$DIRECTORY" "${EXCLUDE_ARGS[@]}" -type f -not -path '*/\.*' -exec stat -c "%Y %n" {} \; | sort -nr | tail -n "$Number_Files_Deleted_Each_Loop" | awk '{print substr($0, index($0,$2))}' | xargs -I % sh -c 'echo %; rm -- "%"'
+        find "$DIRECTORY" "${EXCLUDE_ARGS[@]}" -type f -not -path '*/\.*' -exec stat -c "%Y %n" {} \; | sort -nr | tail -n "$Number_Files_Deleted_Each_Loop" | awk '{print substr($0, index($0,$2))}' | xargs -I % sh -c 'echo "rm %"; rm -- "%"'
         # we delete the empty directories
         EMPTY=$(find "$DIRECTORY" "${EXCLUDE_ARGS[@]}" -type d -empty | sed 's/ /\\ /g')
         if [ ! -z "$EMPTY" ]
