@@ -15,7 +15,7 @@ show_help () {
 # for usage in cron
 # 30 * * * * bash ${HOME}/chomper.sh -d ${HOME}/Downloads/ / 80 1 >> ${HOME}/chomper_logs/chomper-`date "+\%Y-\%m-\%d"`.log 2>&1
 
-VERSION=4.1.0
+VERSION=4.1.1
 
 #
 # Failsafe mechanism. Delete a maximum of MAX_CYCLES files, raise an error after
